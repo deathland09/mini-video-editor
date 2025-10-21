@@ -37,3 +37,34 @@ Thumbs.db
 # Python
 *.egg-info/
 .tox/
+
+# Windows
+*.exe
+*.dll
+*.sys
+*.inf
+*.pdb
+*.log
+*.txt
+*.csv
+*.json
+*.xml
+*.yaml
+
+# macOS
+*.app
+*.dmg
+*.pkg
+
+# Linux
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+*.bz2
+*.xz
+*.7z
+*.rar
+*.tar
+*.gz
+*.bz2

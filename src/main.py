@@ -890,6 +890,43 @@ def show_menu():
 
 def main():
     """Main application loop"""
+    # Check for help argument
+    if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h", "help"]:
+        print_header("FFmpeg Mini App - CLI Version")
+        print("\n" + "─"*60)
+        print(f"{Colors.BOLD}Usage:{Colors.RESET}")
+        print("─"*60)
+        print(f"  {Colors.GREEN}python3 src/main.py{Colors.RESET}                    # Interactive mode")
+        print(f"  {Colors.GREEN}python3 src/main.py <file>{Colors.RESET}              # Process specific file")
+        print(f"  {Colors.GREEN}python3 src/main.py --help{Colors.RESET}             # Show this help")
+        print("\n" + "─"*60)
+        print(f"{Colors.BOLD}Features:{Colors.RESET}")
+        print("─"*60)
+        print(f"  {Colors.GREEN}1{Colors.RESET}. Get File Info")
+        print(f"  {Colors.GREEN}2{Colors.RESET}. Convert to MP4")
+        print(f"  {Colors.GREEN}3{Colors.RESET}. Convert to MP3")
+        print(f"  {Colors.GREEN}4{Colors.RESET}. Extract Audio")
+        print(f"  {Colors.GREEN}5{Colors.RESET}. Compress Video")
+        print(f"  {Colors.GREEN}6{Colors.RESET}. Cut/Trim Video")
+        print(f"  {Colors.GREEN}7{Colors.RESET}. Split Video")
+        print(f"  {Colors.YELLOW}8{Colors.RESET}. Fix Broken Video")
+        print("\n" + "─"*60)
+        print(f"{Colors.BOLD}Requirements:{Colors.RESET}")
+        print("─"*60)
+        print(f"  • FFmpeg must be installed on your system")
+        print(f"  • Python 3.6 or higher")
+        print("\n" + "─"*60)
+        print(f"{Colors.BOLD}Examples:{Colors.RESET}")
+        print("─"*60)
+        print(f"  {Colors.CYAN}# Interactive mode{Colors.RESET}")
+        print(f"  python3 src/main.py")
+        print(f"")
+        print(f"  {Colors.CYAN}# Process a specific file{Colors.RESET}")
+        print(f"  python3 src/main.py video.mp4")
+        print(f"  python3 src/main.py 'video with spaces.mp4'")
+        print("\n" + "─"*60)
+        return 0
+    
     print_header("FFmpeg Mini App - CLI Version")
     
     # Show system info

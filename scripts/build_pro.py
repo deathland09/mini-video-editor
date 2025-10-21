@@ -69,7 +69,15 @@ class ProfessionalBuildSystem:
         self.build_config = self.config["build"]
         self.packaging_config = self.config["packaging"]
         
-        self.current_os = platform.system().lower()
+        # Map platform names to config keys
+        system_name = platform.system().lower()
+        if system_name == "darwin":
+            self.current_os = "macos"
+        elif system_name == "windows":
+            self.current_os = "windows"
+        else:
+            self.current_os = "linux"
+        
         self.arch = platform.machine()
         self.build_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -543,6 +551,8 @@ echo "  ./{exe_name} video.mp4"
             f.write(unix_installer)
         os.chmod(self.release_dir / "install.sh", 0o755)
         print("  ✅ Created Unix installer")
+        
+        return True
     
     def create_distribution_archive(self):
         """Create distribution archive"""
