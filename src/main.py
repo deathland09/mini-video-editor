@@ -9,6 +9,7 @@ import sys
 import platform
 import subprocess
 import shutil
+import time
 from pathlib import Path
 
 
@@ -98,7 +99,6 @@ def get_file_info(ffmpeg_path, file_path):
 
 def convert_file(ffmpeg_path, input_file, output_format):
     """Convert file to specified format with progress tracking"""
-    import time
     
     input_path = Path(input_file)
     output_path = input_path.parent / f"{input_path.stem}_converted.{output_format}"
@@ -201,7 +201,6 @@ def convert_file(ffmpeg_path, input_file, output_format):
 
 def extract_audio(ffmpeg_path, input_file):
     """Extract audio from video with progress tracking"""
-    import time
     
     input_path = Path(input_file)
     output_path = input_path.parent / f"{input_path.stem}_audio.mp3"
@@ -671,6 +670,206 @@ def split_video(ffmpeg_path, input_file):
         return False
 
 
+def fix_broken_video(ffmpeg_path, input_file):
+    """Fix broken/corrupted video files"""
+    print("\n" + "─"*60)
+    print(f"{Colors.CYAN}Fix Broken Video{Colors.RESET}")
+    print("─"*60)
+    
+    input_path = Path(input_file)
+    output_path = input_path.parent / f"{input_path.stem}_fixed.mp4"
+    
+    print_info("Attempting to fix broken video...")
+    print(f"  Input: {input_file}")
+    print(f"  Output: {output_path}")
+    
+    # Get input file size for progress estimation
+    input_size = os.path.getsize(input_file) / (1024 * 1024)  # MB
+    print_info(f"Input file size: {input_size:.2f} MB")
+    
+    print_info("Starting video repair process...")
+    start_time = time.time()
+    
+    try:
+        # Use FFmpeg with error correction and progress output
+        cmd = [
+            ffmpeg_path, "-i", input_file,
+            "-c", "copy",  # Copy streams without re-encoding
+            "-map", "0",   # Map all streams
+            "-ignore_errors",  # Ignore errors and continue
+            "-y",  # Overwrite output file
+            "-progress", "pipe:1",  # Output progress to stdout
+            str(output_path)
+        ]
+        
+        print_info("FFmpeg command: " + " ".join(cmd))
+        print_info("Video repair in progress...")
+        
+        # Run FFmpeg with real-time progress
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+        
+        # Monitor progress
+        progress_started = False
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            
+            if output:
+                # Parse FFmpeg progress output
+                if "out_time_ms=" in output:
+                    if not progress_started:
+                        print_info("Video repair progress started...")
+                        progress_started = True
+                    
+                    # Extract time information
+                    try:
+                        time_str = output.split("out_time_ms=")[1].split()[0]
+                        time_ms = int(time_str)
+                        time_seconds = time_ms / 1000000.0
+                        
+                        # Show progress every 5 seconds
+                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                            elapsed = time.time() - start_time
+                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                    except:
+                        pass
+        
+        # Wait for process to complete
+        return_code = process.wait()
+        
+        if return_code == 0:
+            end_time = time.time()
+            repair_time = end_time - start_time
+            
+            if os.path.exists(output_path):
+                output_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
+                print_success(f"Video repair complete!")
+                print_success(f"  Output size: {output_size:.2f} MB")
+                print_success(f"  Repair time: {repair_time:.1f} seconds")
+                print_success(f"  Saved to: {output_path}")
+                
+                # Show size comparison
+                if input_size > 0:
+                    ratio = (output_size / input_size) * 100
+                    print_info(f"  Size ratio: {ratio:.1f}% of original")
+                
+                return True
+            else:
+                print_error("Output file was not created!")
+                return False
+        else:
+            # Get error details
+            stderr_output = process.stderr.read()
+            print_error(f"Video repair failed with return code: {return_code}")
+            if stderr_output:
+                print_error("Error details:")
+                print(stderr_output[-500:])  # Last 500 characters
+            
+            # Try alternative repair method
+            print_info("Trying alternative repair method...")
+            return try_alternative_repair(ffmpeg_path, input_file, output_path)
+            
+    except Exception as e:
+        print_error(f"Error: {e}")
+        return False
+
+
+def try_alternative_repair(ffmpeg_path, input_file, output_path):
+    """Try alternative repair methods for severely corrupted videos"""
+    print_info("Attempting alternative repair with re-encoding...")
+    
+    try:
+        # Alternative method: re-encode with error correction
+        cmd = [
+            ffmpeg_path, "-i", input_file,
+            "-c:v", "libx264",  # Re-encode video
+            "-c:a", "aac",       # Re-encode audio
+            "-crf", "23",        # Good quality
+            "-preset", "fast",   # Fast encoding
+            "-ignore_errors",    # Ignore errors
+            "-y",  # Overwrite output file
+            "-progress", "pipe:1",  # Output progress to stdout
+            str(output_path)
+        ]
+        
+        print_info("Alternative FFmpeg command: " + " ".join(cmd))
+        print_info("Alternative repair in progress...")
+        
+        # Run FFmpeg with real-time progress
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+        
+        # Monitor progress
+        progress_started = False
+        start_time = time.time()
+        
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            
+            if output:
+                # Parse FFmpeg progress output
+                if "out_time_ms=" in output:
+                    if not progress_started:
+                        print_info("Alternative repair progress started...")
+                        progress_started = True
+                    
+                    # Extract time information
+                    try:
+                        time_str = output.split("out_time_ms=")[1].split()[0]
+                        time_ms = int(time_str)
+                        time_seconds = time_ms / 1000000.0
+                        
+                        # Show progress every 10 seconds (re-encoding is slower)
+                        if int(time_seconds) % 10 == 0 and int(time_seconds) > 0:
+                            elapsed = time.time() - start_time
+                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                    except:
+                        pass
+        
+        # Wait for process to complete
+        return_code = process.wait()
+        
+        if return_code == 0 and os.path.exists(output_path):
+            end_time = time.time()
+            repair_time = end_time - start_time
+            output_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
+            
+            print_success(f"Alternative repair successful!")
+            print_success(f"  Output size: {output_size:.2f} MB")
+            print_success(f"  Repair time: {repair_time:.1f} seconds")
+            print_success(f"  Saved to: {output_path}")
+            print_warning("Note: Video was re-encoded, quality may be slightly reduced")
+            
+            return True
+        else:
+            print_error("Alternative repair also failed!")
+            stderr_output = process.stderr.read()
+            if stderr_output:
+                print_error("Error details:")
+                print(stderr_output[-500:])
+            return False
+            
+    except Exception as e:
+        print_error(f"Alternative repair error: {e}")
+        return False
+
+
 def show_menu():
     """Display main menu"""
     print("\n" + "─"*60)
@@ -683,7 +882,8 @@ def show_menu():
     print(f"  {Colors.GREEN}5{Colors.RESET}. Compress Video")
     print(f"  {Colors.GREEN}6{Colors.RESET}. Cut/Trim Video")
     print(f"  {Colors.GREEN}7{Colors.RESET}. Split Video")
-    print(f"  {Colors.GREEN}8{Colors.RESET}. Select Different File")
+    print(f"  {Colors.YELLOW}8{Colors.RESET}. Fix Broken Video")
+    print(f"  {Colors.GREEN}9{Colors.RESET}. Select Different File")
     print(f"  {Colors.RED}0{Colors.RESET}. Exit")
     print("─"*60)
 
@@ -749,7 +949,7 @@ def main():
     while True:
         show_menu()
         
-        choice = input(f"\n{Colors.CYAN}Select operation (0-8):{Colors.RESET} ").strip()
+        choice = input(f"\n{Colors.CYAN}Select operation (0-9):{Colors.RESET} ").strip()
         
         if choice == "0":
             print_info("Goodbye!")
@@ -769,6 +969,8 @@ def main():
         elif choice == "7":
             split_video(ffmpeg_path, current_file)
         elif choice == "8":
+            fix_broken_video(ffmpeg_path, current_file)
+        elif choice == "9":
             file_input = input(f"\n{Colors.CYAN}Enter new file path:{Colors.RESET} ").strip().strip('"').strip("'")
             if os.path.exists(file_input):
                 current_file = file_input
@@ -778,7 +980,7 @@ def main():
             else:
                 print_error("File not found!")
         else:
-            print_warning("Invalid choice! Please select 0-8.")
+            print_warning("Invalid choice! Please select 0-9.")
         
         input(f"\n{Colors.YELLOW}Press Enter to continue...{Colors.RESET}")
     
