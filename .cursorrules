@@ -1,0 +1,190 @@
+# FFmpeg Mini App - Cursor Rules
+
+## 📁 Project Structure Rules
+
+### ✅ CORRECT File Locations:
+
+#### Source Code (`src/`)
+- `src/main.py` - Main CLI application
+- `src/__init__.py` - Package initialization
+- NO other files in `src/`
+
+#### Build Scripts (`scripts/`)
+- `scripts/build.py` - Basic build script
+- `scripts/build_pro.py` - Professional build system
+- `scripts/progress_utils.py` - Progress utilities
+- NO other files in `scripts/`
+
+#### Documentation (`docs/`)
+- `docs/README.md` - Documentation index
+- `docs/USAGE_GUIDE.md` - Complete usage guide
+- `docs/QUICK_START.md` - Quick start guide
+- `docs/BUILD_SYSTEM.md` - Build system guide
+- `docs/PROJECT_STRUCTURE.md` - Structure documentation
+- `docs/examples/` - Usage examples directory
+- NO other files in `docs/`
+
+#### Test Files (`__test__/`)
+- `__test__/test_*.py` - All test files
+- `__test__/demo_*.py` - All demo files
+- `__test__/README.md` - Test documentation
+- NO other files in `__test__/`
+
+#### Root Directory
+- `build.py` - Main build entry point
+- `build_config.json` - Build configuration
+- `README.md` - Main project documentation
+- `LICENSE` - License file
+- `requirements.txt` - Python dependencies
+- `setup.py` - Package setup
+- `.gitignore` - Git ignore rules
+- `install.sh` - Installation script
+
+### ❌ INCORRECT File Locations (MOVE THESE):
+
+#### Files in Wrong Locations:
+- `test_basic.py` → Move to `__test__/test_basic.py`
+- `debug_build.py` → Move to `__test__/debug_build.py`
+- `simple_build.py` → Move to `scripts/simple_build.py`
+- `build_enhanced.py` → Move to `scripts/build_enhanced.py`
+- `BUILD_INSTRUCTIONS.md` → Move to `docs/BUILD_INSTRUCTIONS.md`
+- `DISTRIBUTION_PACKAGE.md` → Move to `docs/DISTRIBUTION_PACKAGE.md`
+- `FFmpegMiniApp.spec` → Delete (generated file)
+
+## 🎯 File Organization Rules
+
+### 1. Source Code
+- ALL application code goes in `src/`
+- NO build scripts in `src/`
+- NO test files in `src/`
+- NO documentation in `src/`
+
+### 2. Build Scripts
+- ALL build-related scripts go in `scripts/`
+- NO source code in `scripts/`
+- NO test files in `scripts/`
+- NO documentation in `scripts/`
+
+### 3. Documentation
+- ALL documentation goes in `docs/`
+- NO source code in `docs/`
+- NO build scripts in `docs/`
+- NO test files in `docs/`
+
+### 4. Test Files
+- ALL test and demo files go in `__test__/`
+- NO source code in `__test__/`
+- NO build scripts in `__test__/`
+- NO documentation in `__test__/`
+
+### 5. Root Directory
+- ONLY essential project files in root
+- NO test files in root
+- NO build scripts in root (except main entry point)
+- NO documentation in root (except main README)
+
+## 🚫 Files to NEVER Create in Root:
+
+- `test_*.py` - Goes in `__test__/`
+- `debug_*.py` - Goes in `__test__/`
+- `demo_*.py` - Goes in `__test__/`
+- `*_build.py` - Goes in `scripts/` (except main `build.py`)
+- `*.md` - Goes in `docs/` (except main `README.md`)
+- `*.spec` - Generated files, should be deleted
+- `build/` - Generated directory, should be cleaned
+- `dist/` - Generated directory, should be cleaned
+
+## 📋 File Naming Conventions:
+
+### Source Files (`src/`)
+- `main.py` - Main application
+- `__init__.py` - Package initialization
+
+### Build Scripts (`scripts/`)
+- `build.py` - Basic build
+- `build_pro.py` - Professional build
+- `simple_build.py` - Simple build
+- `build_enhanced.py` - Enhanced build menu
+- `progress_utils.py` - Progress utilities
+
+### Test Files (`__test__/`)
+- `test_*.py` - Test files
+- `demo_*.py` - Demo files
+- `debug_*.py` - Debug files
+
+### Documentation (`docs/`)
+- `README.md` - Documentation index
+- `*_GUIDE.md` - User guides
+- `*_STRUCTURE.md` - Structure docs
+- `examples/` - Example directory
+
+## 🔧 Build System Rules:
+
+### Main Entry Point
+- `build.py` - Main build entry point (stays in root)
+
+### Build Scripts
+- `scripts/build.py` - Basic build script
+- `scripts/build_pro.py` - Professional build system
+- `scripts/simple_build.py` - Simple build with status
+- `scripts/build_enhanced.py` - Enhanced build menu
+- `scripts/progress_utils.py` - Progress utilities
+
+### Configuration
+- `build_config.json` - Build configuration (stays in root)
+
+## 🧪 Test System Rules:
+
+### Test Files
+- `__test__/test_*.py` - All test files
+- `__test__/demo_*.py` - All demo files
+- `__test__/debug_*.py` - All debug files
+- `__test__/README.md` - Test documentation
+
+### Test Organization
+- Tests for source code go in `__test__/`
+- Demo scripts go in `__test__/`
+- Debug utilities go in `__test__/`
+
+## 📚 Documentation Rules:
+
+### Main Documentation
+- `README.md` - Main project documentation (stays in root)
+- `docs/README.md` - Documentation index
+- `docs/USAGE_GUIDE.md` - Complete usage guide
+- `docs/QUICK_START.md` - Quick start guide
+- `docs/BUILD_SYSTEM.md` - Build system guide
+- `docs/PROJECT_STRUCTURE.md` - Structure documentation
+
+### Example Documentation
+- `docs/examples/` - All example documentation
+- `docs/examples/SOCIAL_MEDIA.md` - Social media examples
+- `docs/examples/BATCH_PROCESSING.md` - Batch processing examples
+
+## 🎯 Key Principles:
+
+1. **Separation of Concerns** - Each directory has a specific purpose
+2. **Clean Root** - Only essential files in root directory
+3. **Organized Structure** - Related files grouped together
+4. **Clear Naming** - Descriptive file and directory names
+5. **No Duplication** - Each file has a single, clear location
+
+## 🚨 Common Mistakes to Avoid:
+
+1. ❌ Creating test files in root
+2. ❌ Creating build scripts in root (except main entry)
+3. ❌ Creating documentation in root (except main README)
+4. ❌ Mixing file types in directories
+5. ❌ Creating files without clear purpose
+6. ❌ Leaving generated files in repository
+7. ❌ Creating duplicate functionality
+
+## ✅ Best Practices:
+
+1. ✅ Follow the established directory structure
+2. ✅ Use descriptive file names
+3. ✅ Group related files together
+4. ✅ Keep root directory clean
+5. ✅ Use consistent naming conventions
+6. ✅ Document the purpose of each file
+7. ✅ Clean up generated files regularly

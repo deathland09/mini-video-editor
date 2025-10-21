@@ -97,7 +97,9 @@ def get_file_info(ffmpeg_path, file_path):
 
 
 def convert_file(ffmpeg_path, input_file, output_format):
-    """Convert file to specified format"""
+    """Convert file to specified format with progress tracking"""
+    import time
+    
     input_path = Path(input_file)
     output_path = input_path.parent / f"{input_path.stem}_converted.{output_format}"
     
@@ -105,21 +107,92 @@ def convert_file(ffmpeg_path, input_file, output_format):
     print(f"  Input: {input_file}")
     print(f"  Output: {output_path}")
     
+    # Get input file size for progress estimation
+    input_size = os.path.getsize(input_file) / (1024 * 1024)  # MB
+    print_info(f"Input file size: {input_size:.2f} MB")
+    
+    print_info("Starting conversion process...")
+    start_time = time.time()
+    
     try:
-        result = subprocess.run(
-            [ffmpeg_path, "-i", input_file, "-y", str(output_path)],
-            capture_output=True,
-            text=True
+        # Use FFmpeg with progress output
+        cmd = [
+            ffmpeg_path, "-i", input_file, 
+            "-y",  # Overwrite output file
+            "-progress", "pipe:1",  # Output progress to stdout
+            str(output_path)
+        ]
+        
+        print_info("FFmpeg command: " + " ".join(cmd))
+        print_info("Conversion in progress...")
+        
+        # Run FFmpeg with real-time progress
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
         )
         
-        if result.returncode == 0:
-            size = os.path.getsize(output_path) / (1024 * 1024)
-            print_success(f"Conversion complete! Output size: {size:.2f} MB")
-            print_success(f"Saved to: {output_path}")
-            return True
+        # Monitor progress
+        progress_started = False
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            
+            if output:
+                # Parse FFmpeg progress output
+                if "out_time_ms=" in output:
+                    if not progress_started:
+                        print_info("Conversion progress started...")
+                        progress_started = True
+                    
+                    # Extract time information
+                    try:
+                        time_str = output.split("out_time_ms=")[1].split()[0]
+                        time_ms = int(time_str)
+                        time_seconds = time_ms / 1000000.0
+                        
+                        # Show progress every 5 seconds
+                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                            elapsed = time.time() - start_time
+                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                    except:
+                        pass
+        
+        # Wait for process to complete
+        return_code = process.wait()
+        
+        if return_code == 0:
+            end_time = time.time()
+            conversion_time = end_time - start_time
+            
+            if os.path.exists(output_path):
+                output_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
+                print_success(f"Conversion complete!")
+                print_success(f"  Output size: {output_size:.2f} MB")
+                print_success(f"  Conversion time: {conversion_time:.1f} seconds")
+                print_success(f"  Saved to: {output_path}")
+                
+                # Show compression ratio
+                if input_size > 0:
+                    ratio = (output_size / input_size) * 100
+                    print_info(f"  Size ratio: {ratio:.1f}% of original")
+                
+                return True
+            else:
+                print_error("Output file was not created!")
+                return False
         else:
-            print_error("Conversion failed!")
-            print(result.stderr[:500])
+            # Get error details
+            stderr_output = process.stderr.read()
+            print_error(f"Conversion failed with return code: {return_code}")
+            if stderr_output:
+                print_error("Error details:")
+                print(stderr_output[-500:])  # Last 500 characters
             return False
     except Exception as e:
         print_error(f"Error: {e}")
@@ -127,7 +200,9 @@ def convert_file(ffmpeg_path, input_file, output_format):
 
 
 def extract_audio(ffmpeg_path, input_file):
-    """Extract audio from video"""
+    """Extract audio from video with progress tracking"""
+    import time
+    
     input_path = Path(input_file)
     output_path = input_path.parent / f"{input_path.stem}_audio.mp3"
     
@@ -135,21 +210,95 @@ def extract_audio(ffmpeg_path, input_file):
     print(f"  Input: {input_file}")
     print(f"  Output: {output_path}")
     
+    # Get input file size for progress estimation
+    input_size = os.path.getsize(input_file) / (1024 * 1024)  # MB
+    print_info(f"Input file size: {input_size:.2f} MB")
+    
+    print_info("Starting audio extraction...")
+    start_time = time.time()
+    
     try:
-        result = subprocess.run(
-            [ffmpeg_path, "-i", input_file, "-vn", "-acodec", "libmp3lame", "-ab", "192k", "-y", str(output_path)],
-            capture_output=True,
-            text=True
+        # Use FFmpeg with progress output
+        cmd = [
+            ffmpeg_path, "-i", input_file, 
+            "-vn",  # No video
+            "-acodec", "libmp3lame", 
+            "-ab", "192k", 
+            "-y",  # Overwrite output file
+            "-progress", "pipe:1",  # Output progress to stdout
+            str(output_path)
+        ]
+        
+        print_info("FFmpeg command: " + " ".join(cmd))
+        print_info("Audio extraction in progress...")
+        
+        # Run FFmpeg with real-time progress
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
         )
         
-        if result.returncode == 0:
-            size = os.path.getsize(output_path) / (1024 * 1024)
-            print_success(f"Audio extracted! Output size: {size:.2f} MB")
-            print_success(f"Saved to: {output_path}")
-            return True
+        # Monitor progress
+        progress_started = False
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            
+            if output:
+                # Parse FFmpeg progress output
+                if "out_time_ms=" in output:
+                    if not progress_started:
+                        print_info("Audio extraction progress started...")
+                        progress_started = True
+                    
+                    # Extract time information
+                    try:
+                        time_str = output.split("out_time_ms=")[1].split()[0]
+                        time_ms = int(time_str)
+                        time_seconds = time_ms / 1000000.0
+                        
+                        # Show progress every 5 seconds
+                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                            elapsed = time.time() - start_time
+                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                    except:
+                        pass
+        
+        # Wait for process to complete
+        return_code = process.wait()
+        
+        if return_code == 0:
+            end_time = time.time()
+            extraction_time = end_time - start_time
+            
+            if os.path.exists(output_path):
+                output_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
+                print_success(f"Audio extraction complete!")
+                print_success(f"  Output size: {output_size:.2f} MB")
+                print_success(f"  Extraction time: {extraction_time:.1f} seconds")
+                print_success(f"  Saved to: {output_path}")
+                
+                # Show compression ratio
+                if input_size > 0:
+                    ratio = (output_size / input_size) * 100
+                    print_info(f"  Size ratio: {ratio:.1f}% of original")
+                
+                return True
+            else:
+                print_error("Output file was not created!")
+                return False
         else:
-            print_error("Extraction failed!")
-            print(result.stderr[:500])
+            # Get error details
+            stderr_output = process.stderr.read()
+            print_error(f"Audio extraction failed with return code: {return_code}")
+            if stderr_output:
+                print_error("Error details:")
+                print(stderr_output[-500:])  # Last 500 characters
             return False
     except Exception as e:
         print_error(f"Error: {e}")
@@ -263,19 +412,63 @@ def split_video(ffmpeg_path, input_file):
             print(f"  Segment duration: {segment_time}")
             print(f"  Output folder: {output_dir}")
             
-            result = subprocess.run(
-                [
-                    ffmpeg_path, "-i", input_file,
-                    "-c", "copy",
-                    "-map", "0",
-                    "-segment_time", segment_time,
-                    "-f", "segment",
-                    "-reset_timestamps", "1",
-                    str(output_pattern)
-                ],
-                capture_output=True,
-                text=True
+            print_info("Starting video splitting...")
+            start_time = time.time()
+            
+            # Use FFmpeg with progress output
+            cmd = [
+                ffmpeg_path, "-i", input_file,
+                "-c", "copy",
+                "-map", "0",
+                "-segment_time", segment_time,
+                "-f", "segment",
+                "-reset_timestamps", "1",
+                "-progress", "pipe:1",  # Output progress to stdout
+                str(output_pattern)
+            ]
+            
+            print_info("FFmpeg command: " + " ".join(cmd))
+            print_info("Video splitting in progress...")
+            
+            # Run FFmpeg with real-time progress
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
             )
+            
+            # Monitor progress
+            progress_started = False
+            while True:
+                output = process.stdout.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                
+                if output:
+                    # Parse FFmpeg progress output
+                    if "out_time_ms=" in output:
+                        if not progress_started:
+                            print_info("Video splitting progress started...")
+                            progress_started = True
+                        
+                        # Extract time information
+                        try:
+                            time_str = output.split("out_time_ms=")[1].split()[0]
+                            time_ms = int(time_str)
+                            time_seconds = time_ms / 1000000.0
+                            
+                            # Show progress every 5 seconds
+                            if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                                elapsed = time.time() - start_time
+                                print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                        except:
+                            pass
+            
+            # Wait for process to complete
+            result = type('obj', (object,), {'returncode': process.wait()})()
             
         elif split_choice == "2":
             # Split by size
@@ -292,19 +485,63 @@ def split_video(ffmpeg_path, input_file):
             print(f"  Target size: {size_mb} MB per segment")
             print(f"  Output folder: {output_dir}")
             
-            result = subprocess.run(
-                [
-                    ffmpeg_path, "-i", input_file,
-                    "-c", "copy",
-                    "-map", "0",
-                    "-f", "segment",
-                    "-segment_size", str(size_bytes),
-                    "-reset_timestamps", "1",
-                    str(output_pattern)
-                ],
-                capture_output=True,
-                text=True
+            print_info("Starting video splitting by size...")
+            start_time = time.time()
+            
+            # Use FFmpeg with progress output
+            cmd = [
+                ffmpeg_path, "-i", input_file,
+                "-c", "copy",
+                "-map", "0",
+                "-f", "segment",
+                "-segment_size", str(size_bytes),
+                "-reset_timestamps", "1",
+                "-progress", "pipe:1",  # Output progress to stdout
+                str(output_pattern)
+            ]
+            
+            print_info("FFmpeg command: " + " ".join(cmd))
+            print_info("Video splitting in progress...")
+            
+            # Run FFmpeg with real-time progress
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
             )
+            
+            # Monitor progress
+            progress_started = False
+            while True:
+                output = process.stdout.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                
+                if output:
+                    # Parse FFmpeg progress output
+                    if "out_time_ms=" in output:
+                        if not progress_started:
+                            print_info("Video splitting progress started...")
+                            progress_started = True
+                        
+                        # Extract time information
+                        try:
+                            time_str = output.split("out_time_ms=")[1].split()[0]
+                            time_ms = int(time_str)
+                            time_seconds = time_ms / 1000000.0
+                            
+                            # Show progress every 5 seconds
+                            if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                                elapsed = time.time() - start_time
+                                print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                        except:
+                            pass
+            
+            # Wait for process to complete
+            result = type('obj', (object,), {'returncode': process.wait()})()
             
         elif split_choice == "3":
             # Split by number of parts
@@ -342,32 +579,80 @@ def split_video(ffmpeg_path, input_file):
             print(f"  Duration per part: {segment_duration:.2f} seconds")
             print(f"  Output folder: {output_dir}")
             
-            result = subprocess.run(
-                [
-                    ffmpeg_path, "-i", input_file,
-                    "-c", "copy",
-                    "-map", "0",
-                    "-segment_time", str(segment_duration),
-                    "-f", "segment",
-                    "-reset_timestamps", "1",
-                    str(output_pattern)
-                ],
-                capture_output=True,
-                text=True
+            print_info("Starting video splitting into equal parts...")
+            start_time = time.time()
+            
+            # Use FFmpeg with progress output
+            cmd = [
+                ffmpeg_path, "-i", input_file,
+                "-c", "copy",
+                "-map", "0",
+                "-segment_time", str(segment_duration),
+                "-f", "segment",
+                "-reset_timestamps", "1",
+                "-progress", "pipe:1",  # Output progress to stdout
+                str(output_pattern)
+            ]
+            
+            print_info("FFmpeg command: " + " ".join(cmd))
+            print_info("Video splitting in progress...")
+            
+            # Run FFmpeg with real-time progress
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
             )
+            
+            # Monitor progress
+            progress_started = False
+            while True:
+                output = process.stdout.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                
+                if output:
+                    # Parse FFmpeg progress output
+                    if "out_time_ms=" in output:
+                        if not progress_started:
+                            print_info("Video splitting progress started...")
+                            progress_started = True
+                        
+                        # Extract time information
+                        try:
+                            time_str = output.split("out_time_ms=")[1].split()[0]
+                            time_ms = int(time_str)
+                            time_seconds = time_ms / 1000000.0
+                            
+                            # Show progress every 5 seconds
+                            if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                                elapsed = time.time() - start_time
+                                print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                        except:
+                            pass
+            
+            # Wait for process to complete
+            result = type('obj', (object,), {'returncode': process.wait()})()
         else:
             print_error("Invalid choice!")
             return False
         
         if result.returncode == 0:
+            end_time = time.time()
+            splitting_time = end_time - start_time
+            
             # Count created files
             parts = list(output_dir.glob(f"{input_path.stem}_part*.mp4"))
             total_size = sum(p.stat().st_size for p in parts) / (1024 * 1024)
             
             print_success(f"Video split complete!")
-            print_success(f"Created {len(parts)} parts")
-            print_success(f"Total size: {total_size:.2f} MB")
-            print_success(f"Saved to: {output_dir}")
+            print_success(f"  Created {len(parts)} parts")
+            print_success(f"  Total size: {total_size:.2f} MB")
+            print_success(f"  Splitting time: {splitting_time:.1f} seconds")
+            print_success(f"  Saved to: {output_dir}")
             
             # Show parts info
             print(f"\n{Colors.CYAN}Parts created:{Colors.RESET}")
