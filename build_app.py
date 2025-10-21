@@ -33,8 +33,8 @@ def create_spec_file():
 
 block_cipher = None
 
-a = Analysis(
-    ['ffmpeg_cli.py'],
+    a = Analysis(
+        ['mini_ffmpeg.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -91,7 +91,7 @@ def build_executable():
         "--name", "FFmpegMiniApp",
         "--console",
         "--clean",
-        "ffmpeg_cli.py"
+        "mini_ffmpeg.py"
     ]
     
     try:
@@ -177,7 +177,7 @@ read -p "Select option (1-3): " choice
 case $choice in
     1)
         echo "🐍 Running Python version..."
-        python3 ffmpeg_cli.py
+        python3 mini_ffmpeg.py
         ;;
     2)
         echo "🔨 Building executable..."
@@ -263,7 +263,7 @@ python3 build_app.py
 pip install pyinstaller
 
 # Build executable
-pyinstaller --onefile --name FFmpegMiniApp --console ffmpeg_cli.py
+pyinstaller --onefile --name FFmpegMiniApp --console mini_ffmpeg.py
 ```
 
 ---
@@ -311,7 +311,7 @@ FFmpegMiniApp.exe
 
 ```
 video-editor/
-├── ffmpeg_cli.py          # Main application
+├── mini_ffmpeg.py         # Main application
 ├── build_app.py           # Build script
 ├── install.sh             # Installer script
 ├── dist/                  # Built executables
