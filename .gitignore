@@ -13,3 +13,4 @@ docs/*
 .coverage.xml
 .coverage.xml.*
 .coverage.xml.*.*
+__test__/*
