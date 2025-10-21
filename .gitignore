@@ -1,16 +1,39 @@
+# Media files
 *.mp4
-build/*
-dist/*
-__pycache__/*
-docs/*
-.vscode/*
-.idea/*
-.pytest_cache/*
-.ruff_cache/*
-.mypy_cache/*
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+
+# Build artifacts
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+__test__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .coverage
 .coverage.*
 .coverage.xml
-.coverage.xml.*
-.coverage.xml.*.*
-__test__/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.egg-info/
+.tox/

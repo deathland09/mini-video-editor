@@ -20,14 +20,14 @@ A lightweight, cross-platform FFmpeg wrapper that provides essential video/audio
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ffmpeg-mini-app.git
+git clone https://github.com/deathland09/mini-video-editor
 cd ffmpeg-mini-app
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Use the CLI
-python3 mini_ffmpeg.py --help
+python3 src/mini_ffmpeg.py --help
 ```
 
 ### Option 2: Standalone Executable (For End Users)
@@ -76,7 +76,7 @@ sudo yum install ffmpeg
 ### Get File Information
 ```bash
 # Python CLI
-python3 mini_ffmpeg.py info video.mp4
+python3 src/mini_ffmpeg.py info video.mp4
 
 # Executable
 ./FFmpegMiniApp info video.mp4
@@ -85,37 +85,37 @@ python3 mini_ffmpeg.py info video.mp4
 ### Convert Video/Audio
 ```bash
 # Convert MOV to MP4
-python3 mini_ffmpeg.py convert input.mov output.mp4
+python3 src/mini_ffmpeg.py convert input.mov output.mp4
 
 # Convert with specific codecs
-python3 mini_ffmpeg.py convert input.avi output.mp4 --vcodec libx264 --acodec aac
+python3 src/mini_ffmpeg.py convert input.avi output.mp4 --vcodec libx264 --acodec aac
 ```
 
 ### Trim/Cut Video
 ```bash
 # Trim from 10 seconds, duration 30 seconds
-python3 mini_ffmpeg.py trim input.mp4 output.mp4 --start 10 --duration 30
+python3 src/mini_ffmpeg.py trim input.mp4 output.mp4 --start 10 --duration 30
 
 # Trim with stream copy (faster, no re-encoding)
-python3 mini_ffmpeg.py trim input.mp4 output.mp4 --start 10 --duration 30 --copy
+python3 src/mini_ffmpeg.py trim input.mp4 output.mp4 --start 10 --duration 30 --copy
 ```
 
 ### Extract Audio
 ```bash
 # Extract audio to MP3
-python3 mini_ffmpeg.py extract-audio video.mp4 audio.mp3
+python3 src/mini_ffmpeg.py extract-audio video.mp4 audio.mp3
 
 # Extract with custom bitrate
-python3 mini_ffmpeg.py extract-audio video.mp4 audio.mp3 --bitrate 320k
+python3 src/mini_ffmpeg.py extract-audio video.mp4 audio.mp3 --bitrate 320k
 ```
 
 ### Split Video
 ```bash
 # Split into 60-second segments
-python3 mini_ffmpeg.py split video.mp4 part-%03d.mp4 --time 60
+python3 src/mini_ffmpeg.py split video.mp4 part-%03d.mp4 --time 60
 
 # Split into 30-second segments
-python3 mini_ffmpeg.py split long_video.mp4 segment-%03d.mp4 --time 30
+python3 src/mini_ffmpeg.py split long_video.mp4 segment-%03d.mp4 --time 30
 ```
 
 ## 🔨 Building Executables
@@ -123,7 +123,7 @@ python3 mini_ffmpeg.py split long_video.mp4 segment-%03d.mp4 --time 30
 ### Automatic Build
 ```bash
 # Build for current platform
-python3 build_app.py
+python3 scripts/build.py
 ```
 
 ### Manual Build
@@ -132,7 +132,7 @@ python3 build_app.py
 pip install pyinstaller
 
 # Build executable
-pyinstaller --onefile --name FFmpegMiniApp --console mini_ffmpeg.py
+pyinstaller --onefile --name FFmpegMiniApp --console src/mini_ffmpeg.py
 ```
 
 ### Cross-Platform Building
@@ -149,41 +149,66 @@ The executable will be created in the `dist/` directory.
 
 ```
 ffmpeg-mini-app/
-├── mini_ffmpeg.py          # Main CLI application
-├── build_app.py            # Cross-platform build script
-├── requirements.txt        # Python dependencies
-├── LICENSE                 # MIT License
-├── README.md              # This file
-├── dist/                  # Built executables (after build)
-│   └── FFmpegMiniApp      # Executable
-└── build/                 # Build artifacts (after build)
+├── src/                          # Source code
+│   ├── __init__.py               # Package initialization
+│   └── mini_ffmpeg.py            # Main CLI application
+├── scripts/                       # Build and utility scripts
+│   └── build.py                  # Cross-platform build script
+├── docs/                         # Documentation
+│   ├── USAGE_GUIDE.md            # Complete usage guide
+│   ├── QUICK_START.md            # Quick start guide
+│   ├── PROJECT_STRUCTURE.md     # Structure documentation
+│   └── examples/                 # Usage examples
+│       ├── SOCIAL_MEDIA.md       # Social media examples
+│       └── BATCH_PROCESSING.md   # Batch processing examples
+├── __test__/                     # Test files (git ignored)
+│   ├── test_drag_drop.py         # Drag-and-drop tests
+│   ├── test_setup.py             # Environment tests
+│   ├── demo_split.py             # Demo scripts
+│   └── README.md                 # Test documentation
+├── .github/workflows/             # CI/CD automation
+│   └── build.yml                 # Automated builds
+├── README.md                     # Main documentation
+├── LICENSE                       # MIT License
+├── requirements.txt              # Python dependencies
+├── setup.py                      # Package setup
+└── .gitignore                    # Git ignore rules
 ```
+
+## 📚 Documentation
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in 5 minutes
+- **[Complete Usage Guide](docs/USAGE_GUIDE.md)** - Comprehensive documentation
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Repository organization
+- **[Examples](docs/examples/)** - Practical usage examples
+  - [Social Media Examples](docs/examples/SOCIAL_MEDIA.md) - Instagram, TikTok, YouTube
+  - [Batch Processing](docs/examples/BATCH_PROCESSING.md) - Process multiple files
 
 ## 🎬 Examples
 
 ### Video Processing Workflow
 ```bash
 # 1. Get video information
-python3 mini_ffmpeg.py info input.mov
+python3 src/mini_ffmpeg.py info input.mov
 
 # 2. Convert to MP4
-python3 mini_ffmpeg.py convert input.mov output.mp4
+python3 src/mini_ffmpeg.py convert input.mov output.mp4
 
 # 3. Trim to 2 minutes
-python3 mini_ffmpeg.py trim output.mp4 trimmed.mp4 --start 0 --duration 120
+python3 src/mini_ffmpeg.py trim output.mp4 trimmed.mp4 --start 0 --duration 120
 
 # 4. Extract audio
-python3 mini_ffmpeg.py extract-audio trimmed.mp4 audio.mp3
+python3 src/mini_ffmpeg.py extract-audio trimmed.mp4 audio.mp3
 
 # 5. Split into segments
-python3 mini_ffmpeg.py split trimmed.mp4 part-%03d.mp4 --time 30
+python3 src/mini_ffmpeg.py split trimmed.mp4 part-%03d.mp4 --time 30
 ```
 
 ### Batch Processing
 ```bash
 # Process multiple files
 for file in *.mov; do
-    python3 mini_ffmpeg.py convert "$file" "${file%.mov}.mp4"
+    python3 src/mini_ffmpeg.py convert "$file" "${file%.mov}.mp4"
 done
 ```
 
@@ -192,19 +217,19 @@ done
 ### Custom Codecs
 ```bash
 # Use specific video codec
-python3 mini_ffmpeg.py convert input.mp4 output.mp4 --vcodec libx265
+python3 src/mini_ffmpeg.py convert input.mp4 output.mp4 --vcodec libx265
 
 # Use specific audio codec
-python3 mini_ffmpeg.py convert input.mp4 output.mp4 --acodec libmp3lame
+python3 src/mini_ffmpeg.py convert input.mp4 output.mp4 --acodec libmp3lame
 ```
 
 ### Time Format Support
 ```bash
 # Use HH:MM:SS format
-python3 mini_ffmpeg.py trim video.mp4 output.mp4 --start 00:01:30 --duration 00:02:00
+python3 src/mini_ffmpeg.py trim video.mp4 output.mp4 --start 00:01:30 --duration 00:02:00
 
 # Use seconds
-python3 mini_ffmpeg.py trim video.mp4 output.mp4 --start 90 --duration 120
+python3 src/mini_ffmpeg.py trim video.mp4 output.mp4 --start 90 --duration 120
 ```
 
 ## 📦 Distribution
