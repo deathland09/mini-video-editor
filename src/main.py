@@ -97,6 +97,78 @@ def get_file_info(ffmpeg_path, file_path):
         return False
 
 
+def monitor_ffmpeg_progress(process, start_time, operation_name="Processing"):
+    """Monitor FFmpeg progress with timeout and fallback"""
+    progress_started = False
+    last_progress_time = start_time
+    timeout_count = 0
+    
+    # Use threading for non-blocking progress monitoring
+    import threading
+    import queue
+    
+    output_queue = queue.Queue()
+    
+    def read_output():
+        """Read FFmpeg output in a separate thread"""
+        try:
+            for line in iter(process.stdout.readline, ''):
+                output_queue.put(line)
+            output_queue.put(None)  # Signal end of output
+        except:
+            output_queue.put(None)
+    
+    # Start the reader thread
+    reader_thread = threading.Thread(target=read_output, daemon=True)
+    reader_thread.start()
+    
+    # Monitor progress
+    while True:
+        # Check if process has finished
+        if process.poll() is not None:
+            break
+        
+        try:
+            # Try to get output with timeout
+            output = output_queue.get(timeout=1.0)
+            if output is None:  # End of output
+                break
+            
+            if output:
+                # Parse FFmpeg progress output
+                if "out_time_ms=" in output:
+                    if not progress_started:
+                        print_info(f"{operation_name} progress started...")
+                        progress_started = True
+                    
+                    # Extract time information
+                    try:
+                        time_str = output.split("out_time_ms=")[1].split()[0]
+                        time_ms = int(time_str)
+                        time_seconds = time_ms / 1000000.0
+                        
+                        # Show progress every 5 seconds
+                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
+                            elapsed = time.time() - start_time
+                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
+                            last_progress_time = time.time()
+                    except:
+                        pass
+        except queue.Empty:
+            # No output received, check if we should show status
+            current_time = time.time()
+            if current_time - last_progress_time > 10:  # Every 10 seconds
+                elapsed = current_time - start_time
+                print_info(f"Still processing... (elapsed: {elapsed:.1f}s)")
+                last_progress_time = current_time
+                timeout_count += 1
+                
+                # If no progress for too long, show warning
+                if timeout_count > 6:  # 60 seconds without progress
+                    print_warning(f"{operation_name} is taking longer than expected...")
+                    timeout_count = 0  # Reset counter
+
+
 def convert_file(ffmpeg_path, input_file, output_format):
     """Convert file to specified format with progress tracking"""
     
@@ -136,32 +208,8 @@ def convert_file(ffmpeg_path, input_file, output_format):
             universal_newlines=True
         )
         
-        # Monitor progress
-        progress_started = False
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            
-            if output:
-                # Parse FFmpeg progress output
-                if "out_time_ms=" in output:
-                    if not progress_started:
-                        print_info("Conversion progress started...")
-                        progress_started = True
-                    
-                    # Extract time information
-                    try:
-                        time_str = output.split("out_time_ms=")[1].split()[0]
-                        time_ms = int(time_str)
-                        time_seconds = time_ms / 1000000.0
-                        
-                        # Show progress every 5 seconds
-                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
-                            elapsed = time.time() - start_time
-                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
-                    except:
-                        pass
+        # Monitor progress using helper function
+        monitor_ffmpeg_progress(process, start_time, "Conversion")
         
         # Wait for process to complete
         return_code = process.wait()
@@ -241,32 +289,8 @@ def extract_audio(ffmpeg_path, input_file):
             universal_newlines=True
         )
         
-        # Monitor progress
-        progress_started = False
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            
-            if output:
-                # Parse FFmpeg progress output
-                if "out_time_ms=" in output:
-                    if not progress_started:
-                        print_info("Audio extraction progress started...")
-                        progress_started = True
-                    
-                    # Extract time information
-                    try:
-                        time_str = output.split("out_time_ms=")[1].split()[0]
-                        time_ms = int(time_str)
-                        time_seconds = time_ms / 1000000.0
-                        
-                        # Show progress every 5 seconds
-                        if int(time_seconds) % 5 == 0 and int(time_seconds) > 0:
-                            elapsed = time.time() - start_time
-                            print_info(f"Progress: {time_seconds:.1f}s processed (elapsed: {elapsed:.1f}s)")
-                    except:
-                        pass
+        # Monitor progress using helper function
+        monitor_ffmpeg_progress(process, start_time, "Audio extraction")
         
         # Wait for process to complete
         return_code = process.wait()
