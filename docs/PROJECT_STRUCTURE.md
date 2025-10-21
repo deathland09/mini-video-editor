@@ -8,7 +8,7 @@ This document explains the organization of the FFmpeg Mini App repository.
 ffmpeg-mini-app/
 ├── src/                          # Source code
 │   ├── __init__.py               # Package initialization
-│   └── mini_ffmpeg.py            # Main CLI application
+│   └── main.py                   # Main CLI application
 ├── scripts/                       # Build and utility scripts
 │   ├── build.py                  # Cross-platform build script
 │   └── setup.py                  # Package setup (moved from root)
@@ -37,7 +37,7 @@ ffmpeg-mini-app/
 ### `src/` - Source Code
 - **Purpose**: Contains the main application code
 - **Files**: 
-  - `mini_ffmpeg.py` - Main CLI application
+  - `main.py` - Main CLI application
   - `__init__.py` - Package initialization
 
 ### `scripts/` - Build Scripts
@@ -106,7 +106,7 @@ python3 test_drag_drop.py
 ### For Developers
 - Clone repository
 - Install dependencies: `pip install -r requirements.txt`
-- Use CLI: `python3 src/mini_ffmpeg.py`
+- Use CLI: `python3 src/main.py`
 
 ## 🔧 Maintenance
 

@@ -59,7 +59,7 @@ python3 build_app.py
 pip install pyinstaller
 
 # Build executable
-pyinstaller --onefile --name FFmpegMiniApp --console ffmpeg_cli.py
+pyinstaller --onefile --name FFmpegMiniApp --console src/main.py
 ```
 
 ---
@@ -107,7 +107,7 @@ FFmpegMiniApp.exe
 
 ```
 video-editor/
-├── ffmpeg_cli.py          # Main application
+├── src/main.py            # Main application
 ├── build_app.py           # Build script
 ├── install.sh             # Installer script
 ├── dist/                  # Built executables

@@ -19,7 +19,7 @@ sudo apt install ffmpeg
 ### Step 2: Get the App
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ffmpeg-mini-app.git
+git clone https://github.com/deathland09/ffmpeg-mini-app.git
 cd ffmpeg-mini-app
 
 # Or download executable
@@ -31,7 +31,7 @@ cd ffmpeg-mini-app
 ### Step 3: Test It Works
 ```bash
 # Python version
-python3 src/mini_ffmpeg.py --help
+python3 src/main.py --help
 
 # Executable version
 ./FFmpegMiniApp --help
@@ -41,27 +41,27 @@ python3 src/mini_ffmpeg.py --help
 
 ### Get Video Info
 ```bash
-python3 src/mini_ffmpeg.py info video.mp4
+python3 src/main.py info video.mp4
 ```
 
 ### Convert Video
 ```bash
-python3 src/mini_ffmpeg.py convert input.mov output.mp4
+python3 src/main.py convert input.mov output.mp4
 ```
 
 ### Trim Video
 ```bash
-python3 src/mini_ffmpeg.py trim input.mp4 output.mp4 --start 10 --duration 30
+python3 src/main.py trim input.mp4 output.mp4 --start 10 --duration 30
 ```
 
 ### Extract Audio
 ```bash
-python3 src/mini_ffmpeg.py extract-audio video.mp4 audio.mp3
+python3 src/main.py extract-audio video.mp4 audio.mp3
 ```
 
 ### Split Video
 ```bash
-python3 src/mini_ffmpeg.py split video.mp4 part-%03d.mp4 --time 60
+python3 src/main.py split video.mp4 part-%03d.mp4 --time 60
 ```
 
 ## 🔨 Build Executable

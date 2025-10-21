@@ -10,7 +10,7 @@ Examples for processing multiple files efficiently.
 for file in *.mov; do
     if [ -f "$file" ]; then
         echo "Converting $file..."
-        python3 src/mini_ffmpeg.py convert "$file" "${file%.mov}.mp4"
+        python3 src/main.py convert "$file" "${file%.mov}.mp4"
     fi
 done
 
@@ -25,7 +25,7 @@ echo "All MOV files converted to MP4!"
 for file in *.mp4 *.mov *.avi; do
     if [ -f "$file" ]; then
         echo "Extracting audio from $file..."
-        python3 src/mini_ffmpeg.py extract-audio "$file" "${file%.*}.mp3"
+        python3 src/main.py extract-audio "$file" "${file%.*}.mp3"
     fi
 done
 
@@ -43,7 +43,7 @@ for file in *.mp4 *.mov *.avi; do
         
         # Get duration (this is a simplified example)
         # In practice, you'd need to parse the info output
-        python3 src/mini_ffmpeg.py split "$file" "${file%.*}_part_%03d.mp4" --time 120
+        python3 src/main.py split "$file" "${file%.*}_part_%03d.mp4" --time 120
     fi
 done
 
@@ -60,7 +60,7 @@ for file in *.mp4 *.mov *.avi; do
         size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
         if [ "$size" -gt 104857600 ]; then  # 100MB in bytes
             echo "Processing large file: $file ($(($size / 1048576))MB)"
-            python3 src/mini_ffmpeg.py split "$file" "${file%.*}_part_%03d.mp4" --time 300
+            python3 src/main.py split "$file" "${file%.*}_part_%03d.mp4" --time 300
         fi
     fi
 done
@@ -74,7 +74,7 @@ done
 for file in *.mov *.avi; do
     if [ -f "$file" ]; then
         echo "Converting and compressing $file..."
-        python3 src/mini_ffmpeg.py convert "$file" "${file%.*}.mp4" --vcodec libx264 --acodec aac
+        python3 src/main.py convert "$file" "${file%.*}.mp4" --vcodec libx264 --acodec aac
     fi
 done
 
@@ -111,7 +111,7 @@ for file in *.mp4 *.mov *.avi; do
         
         # Process file
         echo "Processing $file for date $date..."
-        python3 src/mini_ffmpeg.py convert "$file" "processed/$date/${file%.*}.mp4"
+        python3 src/main.py convert "$file" "processed/$date/${file%.*}.mp4"
     fi
 done
 
@@ -130,7 +130,7 @@ for file in *.mp4 *.mov *.avi; do
         echo "Checking $file..."
         
         # Get file info
-        info=$(python3 src/mini_ffmpeg.py info "$file" 2>/dev/null)
+        info=$(python3 src/main.py info "$file" 2>/dev/null)
         
         if [ $? -eq 0 ]; then
             echo "✅ $file - OK"
@@ -162,7 +162,7 @@ echo "Backup created. Starting batch processing..."
 for file in *.mp4 *.mov *.avi; do
     if [ -f "$file" ]; then
         echo "Processing $file..."
-        python3 src/mini_ffmpeg.py convert "$file" "${file%.*}_processed.mp4"
+        python3 src/main.py convert "$file" "${file%.*}_processed.mp4"
     fi
 done
 
@@ -182,7 +182,7 @@ for file in "${files[@]}"; do
     current=$((current + 1))
     echo "[$current/$total] Processing $file..."
     
-    python3 src/mini_ffmpeg.py convert "$file" "${file%.*}_processed.mp4"
+    python3 src/main.py convert "$file" "${file%.*}_processed.mp4"
     
     echo "Progress: $((current * 100 / total))%"
 done

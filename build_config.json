@@ -1,0 +1,64 @@
+{
+  "app": {
+    "name": "FFmpegMiniApp",
+    "version": "1.0.0",
+    "description": "A lightweight, cross-platform FFmpeg wrapper",
+    "author": "Your Name",
+    "email": "your.email@example.com",
+    "url": "https://github.com/yourusername/ffmpeg-mini-app"
+  },
+  "build": {
+    "main_file": "src/main.py",
+    "output_name": "FFmpegMiniApp",
+    "console": true,
+    "onefile": true,
+    "optimize": 2,
+    "strip": true,
+    "upx": true,
+    "excludes": [
+      "tkinter", "matplotlib", "numpy", "pandas", "scipy",
+      "PIL", "cv2", "tensorflow", "torch", "sklearn",
+      "jupyter", "notebook", "IPython"
+    ]
+  },
+  "packaging": {
+    "include_files": [
+      "README.md",
+      "LICENSE",
+      "requirements.txt"
+    ],
+    "create_installer": true,
+    "create_archive": true,
+    "archive_formats": {
+      "windows": "zip",
+      "unix": "tar.gz"
+    }
+  },
+  "optimization": {
+    "compress": true,
+    "remove_debug": true,
+    "strip_symbols": true,
+    "exclude_tests": true
+  },
+  "testing": {
+    "run_tests": true,
+    "test_help": true,
+    "test_startup": true,
+    "timeout": 10
+  },
+  "platforms": {
+    "windows": {
+      "exe_extension": ".exe",
+      "installer_script": "install.bat"
+    },
+    "macos": {
+      "exe_extension": "",
+      "installer_script": "install.sh",
+      "code_sign": false
+    },
+    "linux": {
+      "exe_extension": "",
+      "installer_script": "install.sh"
+    }
+  }
+}

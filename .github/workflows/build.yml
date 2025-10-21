@@ -42,11 +42,11 @@ jobs:
     
     - name: Test CLI
       run: |
-        python mini_ffmpeg.py --help
+        python3 src/main.py --help
     
     - name: Build executable
       run: |
-        python -m PyInstaller --onefile --name FFmpegMiniApp --console mini_ffmpeg.py
+        python3 build.py
     
     - name: Test executable
       run: |

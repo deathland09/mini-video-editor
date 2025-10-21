@@ -18,7 +18,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/ffmpeg-mini-app",
     packages=find_packages(),
-    py_modules=["src.mini_ffmpeg"],
+    py_modules=["src.main"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -39,7 +39,7 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            "ffmpeg-mini=src.mini_ffmpeg:main",
+            "ffmpeg-mini=src.main:main",
         ],
     },
     keywords="ffmpeg video audio cli cross-platform",
