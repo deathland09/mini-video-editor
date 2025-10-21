@@ -1,0 +1,15 @@
+*.mp4
+build/*
+dist/*
+__pycache__/*
+docs/*
+.vscode/*
+.idea/*
+.pytest_cache/*
+.ruff_cache/*
+.mypy_cache/*
+.coverage
+.coverage.*
+.coverage.xml
+.coverage.xml.*
+.coverage.xml.*.*
