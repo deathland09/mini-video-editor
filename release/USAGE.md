@@ -45,6 +45,6 @@ FFmpegMiniApp video.mp4
 - Issues: https://github.com/yourusername/ffmpeg-mini-app/issues
 
 ---
-Built on 2025-10-21 17:46:40
+Built on 2025-10-21 17:55:18
 Platform: Darwin arm64
 Version: 1.0.0
