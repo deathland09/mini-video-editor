@@ -48,7 +48,7 @@ def run_quick_build():
     
     try:
         result = subprocess.run([
-            sys.executable, "simple_build.py"
+            sys.executable, "scripts/simple_build.py"
         ], check=True)
         
         print("\n✅ Quick build completed successfully!")

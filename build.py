@@ -38,13 +38,13 @@ def run_quick_build():
     print("🚀 Starting Enhanced Quick Build...")
     print("=" * 50)
     
-    build_script = Path("simple_build.py")
+    build_script = Path("scripts/simple_build.py")
     if not build_script.exists():
         print("❌ Enhanced build script not found!")
-        print("Please ensure simple_build.py exists")
+        print("Please ensure scripts/simple_build.py exists")
         return False
     
-    print("📁 Using: simple_build.py (with enhanced status tracking)")
+    print("📁 Using: scripts/simple_build.py (with enhanced status tracking)")
     print("⏰ Started:", time.strftime('%H:%M:%S'))
     print()
     
@@ -111,10 +111,10 @@ def run_professional_build():
 
 def run_enhanced_menu():
     """Run the enhanced build menu"""
-    enhanced_script = Path("build_enhanced.py")
+    enhanced_script = Path("scripts/build_enhanced.py")
     if not enhanced_script.exists():
         print("❌ Enhanced build menu not found!")
-        print("Please ensure build_enhanced.py exists")
+        print("Please ensure scripts/build_enhanced.py exists")
         return False
     
     try:
@@ -159,9 +159,9 @@ def check_build_status():
     
     # Check build scripts
     scripts = [
-        ("simple_build.py", "Enhanced Quick Build"),
+        ("scripts/simple_build.py", "Enhanced Quick Build"),
         ("scripts/build_pro.py", "Professional Build"),
-        ("build_enhanced.py", "Enhanced Menu"),
+        ("scripts/build_enhanced.py", "Enhanced Menu"),
         ("build_config.json", "Build Configuration")
     ]
     
