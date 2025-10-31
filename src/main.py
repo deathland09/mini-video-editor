@@ -720,7 +720,8 @@ def fix_broken_video(ffmpeg_path, input_file):
             ffmpeg_path, "-i", input_file,
             "-c", "copy",  # Copy streams without re-encoding
             "-map", "0",   # Map all streams
-            "-ignore_errors",  # Ignore errors and continue
+            "-fflags", "+ignidx",  # Ignore index errors
+            "-err_detect", "ignore_err",  # Ignore errors and continue
             "-y",  # Overwrite output file
             "-progress", "pipe:1",  # Output progress to stdout
             str(output_path)
@@ -818,7 +819,8 @@ def try_alternative_repair(ffmpeg_path, input_file, output_path):
             "-c:a", "aac",       # Re-encode audio
             "-crf", "23",        # Good quality
             "-preset", "fast",   # Fast encoding
-            "-ignore_errors",    # Ignore errors
+            "-fflags", "+ignidx",  # Ignore index errors
+            "-err_detect", "ignore_err",  # Ignore errors
             "-y",  # Overwrite output file
             "-progress", "pipe:1",  # Output progress to stdout
             str(output_path)
@@ -917,15 +919,15 @@ def main():
     # Check for help argument
     if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h", "help"]:
         print_header("FFmpeg Mini App - CLI Version")
-        print("\n" + "─"*60)
+        print("\n" + "-"*60)
         print(f"{Colors.BOLD}Usage:{Colors.RESET}")
-        print("─"*60)
+        print("-"*60)
         print(f"  {Colors.GREEN}python3 src/main.py{Colors.RESET}                    # Interactive mode")
         print(f"  {Colors.GREEN}python3 src/main.py <file>{Colors.RESET}              # Process specific file")
         print(f"  {Colors.GREEN}python3 src/main.py --help{Colors.RESET}             # Show this help")
-        print("\n" + "─"*60)
+        print("\n" + "-"*60)
         print(f"{Colors.BOLD}Features:{Colors.RESET}")
-        print("─"*60)
+        print("-"*60)
         print(f"  {Colors.GREEN}1{Colors.RESET}. Get File Info")
         print(f"  {Colors.GREEN}2{Colors.RESET}. Convert to MP4")
         print(f"  {Colors.GREEN}3{Colors.RESET}. Convert to MP3")
@@ -937,11 +939,11 @@ def main():
         print("\n" + "─"*60)
         print(f"{Colors.BOLD}Requirements:{Colors.RESET}")
         print("─"*60)
-        print(f"  • FFmpeg must be installed on your system")
-        print(f"  • Python 3.6 or higher")
-        print("\n" + "─"*60)
+        print(f"  - FFmpeg must be installed on your system")
+        print(f"  - Python 3.6 or higher")
+        print("\n" + "-"*60)
         print(f"{Colors.BOLD}Examples:{Colors.RESET}")
-        print("─"*60)
+        print("-"*60)
         print(f"  {Colors.CYAN}# Interactive mode{Colors.RESET}")
         print(f"  python3 src/main.py")
         print(f"")

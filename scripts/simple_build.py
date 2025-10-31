@@ -11,6 +11,13 @@ import time
 import shutil
 from pathlib import Path
 
+# Ensure Windows console handles Unicode safely
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 class ProcessStatus:
     """Handle process status display"""
     
@@ -171,12 +178,14 @@ def build_executable(status):
             status.show_progress(f"PyInstaller build completed in {build_time:.1f}s", "success")
             
             # Check if executable was created
-            exe_name = "FFmpegMiniApp.exe" if platform.system() == "Windows" else "FFmpegMiniApp"
+            is_windows = platform.system() == "Windows"
+            exe_name = "FFmpegMiniApp.exe" if is_windows else "FFmpegMiniApp"
             exe_path = os.path.join("dist", exe_name)
             
             if os.path.exists(exe_path):
                 file_size = os.path.getsize(exe_path) / (1024 * 1024)  # MB
                 status.show_progress(f"Executable created: {exe_path} ({file_size:.2f} MB)", "success")
+                status.exe_name = exe_name  # Store for final summary
                 return status.show_summary(True, "Build completed successfully")
             else:
                 status.show_progress(f"Executable not found at: {exe_path}", "error")
@@ -247,12 +256,28 @@ def main():
         print('='*80)
         print(f"✅ All {success_count}/{len(steps)} steps completed successfully")
         print(f"⏰ Total build time: {total_time:.1f} seconds")
-        print(f"📦 Executable location: dist/FFmpegMiniApp")
+        
+        # Get executable name based on platform
+        is_windows = platform.system() == "Windows"
+        exe_name = "FFmpegMiniApp.exe" if is_windows else "FFmpegMiniApp"
+        exe_path = f"dist/{exe_name}"
+        
+        # Check if executable actually exists
+        if os.path.exists(exe_path):
+            file_size = os.path.getsize(exe_path) / (1024 * 1024)  # MB
+            print(f"📦 Executable location: {exe_path} ({file_size:.2f} MB)")
+        else:
+            print(f"📦 Executable location: {exe_path}")
+        
         print(f"🎯 Ready to use!")
         
         # Show next steps
         print(f"\n📋 Next Steps:")
-        print(f"  • Test the executable: ./dist/FFmpegMiniApp --help")
+        if is_windows:
+            print(f"  • Test the executable: dist\\{exe_name} --help")
+            print(f"  • Or double-click: dist\\{exe_name}")
+        else:
+            print(f"  • Test the executable: ./dist/{exe_name} --help")
         print(f"  • Copy to desired location")
         print(f"  • Share with others (no Python required)")
         

@@ -9,6 +9,13 @@ import subprocess
 import time
 from pathlib import Path
 
+# Ensure Windows console handles Unicode safely
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 def show_build_options():
     """Show build options"""
     print("🎬 FFmpeg Mini App - Build System")

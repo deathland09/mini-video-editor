@@ -14,6 +14,13 @@ import time
 from pathlib import Path
 from datetime import datetime
 
+# Ensure Windows console handles Unicode safely
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 class BuildProgress:
     """Enhanced progress tracking for professional builds"""
     
@@ -151,26 +158,50 @@ class ProfessionalBuildSystem:
         """Check and install build dependencies"""
         print("\n📋 Checking dependencies...")
         
-        required_packages = ["pyinstaller", "setuptools", "wheel"]
+        # Map package names to their import names and pip names
+        dependencies = {
+            "PyInstaller": ("PyInstaller", "pyinstaller"),
+            "setuptools": ("setuptools", "setuptools"),
+            "wheel": ("wheel", "wheel")
+        }
+        
         missing_packages = []
         
-        for package in required_packages:
+        for display_name, (import_name, pip_name) in dependencies.items():
             try:
-                __import__(package)
-                print(f"  ✅ {package}")
+                module = __import__(import_name)
+                version = getattr(module, "__version__", "unknown")
+                if version != "unknown":
+                    print(f"  ✅ {display_name} (version: {version})")
+                else:
+                    print(f"  ✅ {display_name}")
             except ImportError:
-                missing_packages.append(package)
-                print(f"  ❌ {package} - missing")
+                missing_packages.append(pip_name)
+                print(f"  ❌ {display_name} - missing")
         
         if missing_packages:
             print(f"\n📦 Installing missing packages: {', '.join(missing_packages)}")
             try:
-                subprocess.run([
+                result = subprocess.run([
                     sys.executable, "-m", "pip", "install", "--upgrade"
-                ] + missing_packages, check=True)
+                ] + missing_packages, check=True, capture_output=True, text=True)
                 print("✅ Dependencies installed")
+                
+                # Verify installation
+                print("\n🔍 Verifying installation...")
+                for display_name, (import_name, pip_name) in dependencies.items():
+                    if pip_name in missing_packages:
+                        try:
+                            module = __import__(import_name)
+                            version = getattr(module, "__version__", "unknown")
+                            print(f"  ✅ {display_name} installed (version: {version})")
+                        except ImportError:
+                            print(f"  ❌ {display_name} installation failed")
+                            return False
             except subprocess.CalledProcessError as e:
                 print(f"❌ Failed to install dependencies: {e}")
+                if e.stderr:
+                    print(f"Error details: {e.stderr[:300]}")
                 return False
         
         return True
@@ -262,8 +293,26 @@ exe = EXE(
         
         try:
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            print("✅ Build successful!")
-            return True
+            
+            # Verify executable was created
+            exe_name = self.get_executable_name()
+            exe_path = self.dist_dir / exe_name
+            
+            if exe_path.exists():
+                file_size = exe_path.stat().st_size / (1024 * 1024)  # MB
+                print(f"✅ Build successful!")
+                print(f"  📦 Executable created: {exe_path} ({file_size:.2f} MB)")
+                return True
+            else:
+                print(f"❌ Build completed but executable not found: {exe_path}")
+                print(f"  ℹ️  Expected location: {exe_path}")
+                # List what was actually created
+                if self.dist_dir.exists():
+                    files = list(self.dist_dir.glob("*"))
+                    if files:
+                        print(f"  📁 Files in dist/: {[f.name for f in files]}")
+                return False
+                
         except subprocess.CalledProcessError as e:
             print(f"❌ Build failed: {e}")
             if e.stderr:
@@ -371,30 +420,41 @@ exe = EXE(
         # Create release directory
         self.release_dir.mkdir(exist_ok=True)
         
-        # Copy executable
+        # Create platform-specific subdirectory
+        platform_subdir = f"{self.current_os}-{self.arch}"
+        platform_dir = self.release_dir / platform_subdir
+        platform_dir.mkdir(exist_ok=True)
+        print(f"  📁 Created platform directory: {platform_subdir}")
+        
+        # Copy executable to platform subdirectory
         exe_name = self.get_executable_name()
         exe_path = self.dist_dir / exe_name
         
         if exe_path.exists():
-            shutil.copy2(exe_path, self.release_dir / exe_name)
-            print(f"  ✅ Copied executable: {exe_name}")
+            dest_path = platform_dir / exe_name
+            shutil.copy2(exe_path, dest_path)
+            file_size = exe_path.stat().st_size / (1024 * 1024)  # MB
+            print(f"  ✅ Copied executable: {platform_subdir}/{exe_name} ({file_size:.2f} MB)")
         else:
             print(f"  ❌ Executable not found: {exe_path}")
             return False
         
-        # Copy included files
+        # Copy included files to platform subdirectory
         for file_name in self.packaging_config["include_files"]:
             if os.path.exists(file_name):
-                shutil.copy2(file_name, self.release_dir)
-                print(f"  ✅ Copied: {file_name}")
+                shutil.copy2(file_name, platform_dir / Path(file_name).name)
+                print(f"  ✅ Copied: {file_name} -> {platform_subdir}/")
             else:
                 print(f"  ⚠️  File not found: {file_name}")
         
-        # Create usage instructions
+        # Create platform-specific usage instructions
         self.create_usage_instructions()
         
         # Create build info
         self.create_build_info()
+        
+        # Create cross-platform build documentation
+        self.create_cross_platform_build_guide()
         
         return True
     
@@ -488,6 +548,196 @@ Version: {self.app_config['version']}
             json.dump(build_info, f, indent=2)
         
         print("  ✅ Created build info")
+    
+    def create_cross_platform_build_guide(self):
+        """Create cross-platform build guide documentation"""
+        print("\n📚 Creating cross-platform build guide...")
+        
+        guide_content = f"""# Cross-Platform Build Guide
+
+## ⚠️ Important Note About Cross-Platform Builds
+
+**PyInstaller can only build executables for the platform it's running on.** This means:
+- To build **Windows** executables (`.exe`), you must build on Windows
+- To build **macOS** executables, you must build on macOS
+- To build **Linux** executables, you must build on Linux
+
+## 📦 Current Build
+
+This release package contains the executable built for:
+- **Platform**: {platform.system()} {self.arch}
+- **Executable**: {self.get_executable_name()}
+- **Location**: `release/{self.current_os}-{self.arch}/`
+
+## 🏗️ Building for Other Platforms
+
+### Building for Windows
+
+1. **On a Windows machine:**
+   ```bash
+   # Install dependencies
+   pip install pyinstaller
+   
+   # Run the build
+   python build.py
+   # or
+   python scripts/build_pro.py
+   ```
+
+2. **Result:** `dist/FFmpegMiniApp.exe`
+
+3. **Copy to release:**
+   ```bash
+   # Copy to release/windows-<arch>/ directory
+   mkdir -p release/windows-{self.arch}
+   copy dist\\FFmpegMiniApp.exe release\\windows-{self.arch}\\
+   ```
+
+### Building for macOS
+
+1. **On a macOS machine:**
+   ```bash
+   # Install dependencies
+   pip3 install pyinstaller
+   
+   # Run the build
+   python3 build.py
+   # or
+   python3 scripts/build_pro.py
+   ```
+
+2. **Result:** `dist/FFmpegMiniApp`
+
+3. **Copy to release:**
+   ```bash
+   # Copy to release/macos-<arch>/ directory
+   mkdir -p release/macos-{self.arch}
+   cp dist/FFmpegMiniApp release/macos-{self.arch}/
+   ```
+
+### Building for Linux
+
+1. **On a Linux machine:**
+   ```bash
+   # Install dependencies
+   pip3 install pyinstaller
+   
+   # Run the build
+   python3 build.py
+   # or
+   python3 scripts/build_pro.py
+   ```
+
+2. **Result:** `dist/FFmpegMiniApp`
+
+3. **Copy to release:**
+   ```bash
+   # Copy to release/linux-<arch>/ directory
+   mkdir -p release/linux-{self.arch}
+   cp dist/FFmpegMiniApp release/linux-{self.arch}/
+   ```
+
+## 🚀 Using CI/CD for Multi-Platform Builds
+
+The easiest way to build for all platforms is to use CI/CD services like:
+
+### GitHub Actions
+The repository includes a `.github/workflows/build.yml` file that automatically builds for all platforms on every release.
+
+### GitHub Actions Usage:
+1. Push a tag: `git tag v1.0.0 && git push --tags`
+2. GitHub Actions will build for Windows, macOS, and Linux
+3. Download artifacts from the Actions page
+
+### Manual Multi-Platform Build Process
+
+1. **Build on Windows:**
+   - Run build on Windows machine
+   - Copy `dist/FFmpegMiniApp.exe` to `release/windows-<arch>/`
+
+2. **Build on macOS:**
+   - Run build on macOS machine
+   - Copy `dist/FFmpegMiniApp` to `release/macos-<arch>/`
+
+3. **Build on Linux:**
+   - Run build on Linux machine
+   - Copy `dist/FFmpegMiniApp` to `release/linux-<arch>/`
+
+4. **Create final archive:**
+   ```bash
+   # After all builds are in release/ subdirectories
+   cd release
+   zip -r FFmpegMiniApp-v{self.app_config['version']}-all-platforms.zip .
+   ```
+
+## 📋 Release Directory Structure
+
+After building for all platforms, your release directory should look like:
+
+```
+release/
+├── windows-x86_64/
+│   ├── FFmpegMiniApp.exe
+│   ├── README.md
+│   └── LICENSE
+├── macos-arm64/
+│   ├── FFmpegMiniApp
+│   ├── README.md
+│   └── LICENSE
+├── macos-x86_64/
+│   ├── FFmpegMiniApp
+│   ├── README.md
+│   └── LICENSE
+├── linux-x86_64/
+│   ├── FFmpegMiniApp
+│   ├── README.md
+│   └── LICENSE
+├── install.sh
+├── install.bat
+├── USAGE.md
+├── build_info.json
+└── CROSS_PLATFORM_BUILD.md (this file)
+```
+
+## 🔧 Alternative: Using Docker for Cross-Platform Builds
+
+You can use Docker to build for Linux on any platform:
+
+```bash
+# Build Linux executable using Docker
+docker run --rm -v "$(pwd):/app" python:3.11 bash -c "
+  cd /app &&
+  pip install pyinstaller &&
+  python build.py
+"
+```
+
+**Note:** Docker can only build Linux executables, not Windows or macOS.
+
+## ❓ Troubleshooting
+
+### Why can't I build Windows executables on macOS/Linux?
+
+PyInstaller uses platform-specific libraries and cannot cross-compile. You need access to a Windows machine or use CI/CD.
+
+### Can I use Wine to build Windows executables?
+
+Wine has limitations and may not work reliably for PyInstaller builds. It's recommended to build on native Windows.
+
+### What about using GitHub Actions or other CI/CD?
+
+Yes! CI/CD is the recommended approach. See the GitHub Actions workflow in `.github/workflows/build.yml`.
+
+---
+
+**Last Updated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Current Build Platform:** {platform.system()} {self.arch}
+"""
+        
+        with open(self.release_dir / "CROSS_PLATFORM_BUILD.md", "w") as f:
+            f.write(guide_content)
+        
+        print("  ✅ Created cross-platform build guide")
     
     def create_installer_scripts(self):
         """Create platform-specific installer scripts"""
@@ -766,7 +1016,12 @@ echo "🎉 Enjoy using {self.app_config['name']}!"
                 print(f"\n📊 Total Package Size: {total_size:.2f} MB")
             
             print(f"\n🎯 Next Steps:")
-            print(f"  • Test executable: ./dist/FFmpegMiniApp --help")
+            exe_name = self.get_executable_name()
+            if self.current_os == "windows":
+                print(f"  • Test executable: dist\\{exe_name} --help")
+                print(f"  • Or double-click: dist\\{exe_name}")
+            else:
+                print(f"  • Test executable: ./dist/{exe_name} --help")
             print(f"  • Check release package in: {self.release_dir}")
             print(f"  • Distribute to users (no Python required)")
             
